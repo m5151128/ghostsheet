@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Ajax DEMO</title>
+	<style>
+		html {
+			background-color: #f0f0f0;
+			font-size: 13px;
+		}
+		body {
+			width: 800px;
+			margin: 0 auto;
+			background-color: #f9f9f9;
+			padding: 1em;
+		}
+		input[type=text] {
+			padding: 0.5em;
+			width: 40em;
+		}
+		button {
+			padding: 0.5em 1em;
+		}
+		#message {
+			color: #f90;
+		}
+		table {
+			border-collapse: collapse;
+		}
+		th, td {
+			border: 1px solid #ccc;
+			padding: 0.5em 1em;
+			box-shadow: inset 1px 1px 1px #fff;
+		}
+		th {
+			background-color: #f3f3f3;
+		}
+	</style>
+</head>
+<body>
+
+	<h1>DEMO</h1>
+
+	<form id="control">
+		ID : <input type="text" id="sheet-id" value="">
+		<button id="button-load" name="submit">LOAD</button>
+	</form>
+
+	<div id="output">
+		<p id="message"></p>
+		<table id="result"></table>
+	</div>
+
+
+	<script src="./jquery.min.js"></script>
+	<script>
+
+	var app = {
+
+		control: $("#control"),
+		message: $("#message"),
+		result: $("#result"),
+		input: $("#sheet-id"),
+
+		init: function(){
+			var my = this;
+			this.control.on("submit", $.proxy(this.onSubmit.bind(this), this));
+		},
+
+		load: function(id){
+			var my = this;
+			$.ajax({
+				url: "./ajax.php",
+				type: "get",
+				data: {
+					mode: "cache",
+					id: id
+				}
+			}).fail(function(){
+				console.error(arguments);
+			}).then(function(data){
+				my.setMessage(id + " is successfully loaded.");
+				my.setResult(data.items);
+
+				$.ajax({
+					url: "./ajax.php",
+					type: "get",
+					data: {mode: "update"}
+				});
+			});
+		},
+
+		setMessage: function(message){
+			this.message.hide().html(message).fadeIn();
+		},
+
+		setResult: function(items){
+			var table, header, rows;
+
+			table = this.result;
+			header = [];
+			rows = [];
+			table.html("").hide();
+
+			$.each(items, function(i, item){
+				var row = [];
+				$.each(item, function(key, value){
+					if(! rows.length){
+						header.push(key);
+					}
+					row.push(value);
+				});
+				rows.push(row);
+			});
+
+			rows.unshift(header);
+
+			$.each(rows, function(i, row){
+				var tr = $("<tr>");
+				var tag = !! i ? "<td>" : "<th>";
+				$.each(row, function(i, value){
+					tr.append($(tag).html(value));
+				});
+				table.append(tr);
+			});
+
+			table.fadeIn();
+		},
+
+		onSubmit: function(e){
+			e.preventDefault();
+			this.load(this.input.val());
+		}
+	};
+
+	app.init();
+
+	</script>
+	
+</body>
+</html>
